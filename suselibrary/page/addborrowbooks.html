@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../css/font.css" />
+    <link rel="stylesheet" href="../css/xadmin.css" />
+    <link rel="stylesheet" href="../lib/layui/css/layui.css" />
+</head>
+
+<body>
+    <div id="app">
+        <form class="layui-form" action="">
+            <div class="layui-form-item">
+                <!-- 借阅证id -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">借阅证id</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="cardId" autocomplete="off" class="layui-input" />
+                    </div>
+                </div>
+                <!-- 图书id -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">图书id</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="bookId" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <!-- 借阅时间 -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">借阅时间</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="borrowDate" id="borrowDate" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <!-- 限定时间 -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">限定时间</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="endDate" id="endDate" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <!-- 归还时间 -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">归还时间</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="returnDate" id="returnDate" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <!-- 违章信息 -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">违章信息</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="illegal" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <!-- 处理人 -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">处理人</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="managerId" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <!-- <input type="text" id="eId" name="id" v-model="id" /> -->
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" lay-submit="" lay-filter="submit">
+                        立即提交
+                    </button>
+                    <button type="reset" class="layui-btn layui-btn-primary">
+                        重置
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="../js/jquery.min.js"></script>
+    <script src="../lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="../js/xadmin.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script src="../js/vue.js"></script>
+    <script>
+        layui.use(["form", "laydate"], function () {
+            let form = layui.form;
+            let laydate = layui.laydate;
+            laydate.render({
+                elem: "#borrowDate",
+            });
+            laydate.render({
+                elem: "#endDate",
+            });
+            laydate.render({
+                elem: "#returnDate",
+            });
+            setTimeout(function () {
+                const app = new Vue({
+                    el: "#app",
+                    data: {
+                    },
+                    created() {
+                    },
+                    updated() {
+                        layui.use("form", () => {
+                            form.render();
+                            // $("#eId").val(this.id)
+                        });
+                    },
+                });
+            }, 10);
+
+            form.on("submit(submit)", function (obj) {
+                console.log(obj.field);
+                axios
+                    .post("http://localhost:8520/borrowBooks", obj.field)
+                    .then((res) => {
+                        if (res.data.code == 200) {
+                            layer.msg(
+                                "修改成功",
+                                {
+                                    time: 2000,
+                                    icon: 1,
+                                },
+                                () => {
+                                    form.render();
+                                }
+                            );
+                        } else {
+                            layer.msg("操作异常", {
+                                icon: 2,
+                                time: 2000
+                            })
+                        }
+                    });
+                return false;
+            });
+        });
+    </script>
+</body>
+
+</html>

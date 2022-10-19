@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../css/font.css" />
+    <link rel="stylesheet" href="../css/xadmin.css" />
+    <link rel="stylesheet" href="../lib/layui/css/layui.css" />
+</head>
+
+<body>
+    <div id="app">
+        <form class="layui-form" action="">
+            <div class="layui-form-item">
+                <!-- 名称 -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">管理员名称</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="name" autocomplete="off" class="layui-input" :value="manager.name" disabled />
+                    </div>
+                </div>
+                <!-- 用户名 -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">用户名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="account" autocomplete="off" class="layui-input" :value="manager.account">
+                    </div>
+                </div>
+                <!-- 密码 -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">密码</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="password" autocomplete="off" class="layui-input" :value="manager.password">
+                    </div>
+                </div>
+                <!-- 邮箱 -->
+                <div class="layui-inline">
+                    <label class="layui-form-label">邮箱</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="email" autocomplete="off" class="layui-input" :value="manager.email">
+                    </div>
+                </div>
+                <input type="text" id="eId" name="id" v-model="id" style="display: none" />
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" lay-submit="" lay-filter="submit">
+                        立即提交
+                    </button>
+                    <button type="reset" class="layui-btn layui-btn-primary">
+                        重置
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="../js/jquery.min.js"></script>
+    <script src="../lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="../js/xadmin.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script src="../js/vue.js"></script>
+    <script>
+        layui.use("form", function() {
+            let form = layui.form;
+            setTimeout(function() {
+                const app = new Vue({
+                    el: "#app",
+                    data: {
+                        manager: null,
+                        id: ""
+                    },
+                    created() {
+                        this.id = $("#eId").val();
+                        axios
+                            .get("http://localhost:8520/managers/" + $("#eId").val())
+                            .then((res) => {
+                                this.manager = res.data.data;
+                                console.log(manager);
+                            });
+                    },
+                    updated() {
+                        layui.use("form", () => {
+                            form.render();
+                            // $("#eId").val(this.id)
+                        });
+                    },
+                });
+            }, 10);
+
+            form.on("submit(submit)", function(obj) {
+                console.log(obj.field);
+                axios
+                    .put("http://localhost:8520/managers", obj.field)
+                    .then((res) => {
+                        if (res.data.code == 200) {
+                            layer.msg(
+                                "修改成功", {
+                                    time: 2000,
+                                    icon: 1,
+                                },
+                                () => {
+                                    form.render();
+                                }
+                            );
+                        } else {
+                            layer.msg("操作异常", {
+                                icon: 2,
+                                time: 2000
+                            })
+                        }
+                    });
+                return false;
+            });
+        });
+    </script>
+</body>
+
+</html>

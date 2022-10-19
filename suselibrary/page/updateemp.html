@@ -1,0 +1,162 @@
+
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../css/font.css" />
+    <link rel="stylesheet" href="../css/xadmin.css" />
+    <link rel="stylesheet" href="../lib/layui/css/layui.css" />
+  </head>
+
+  <body>
+    <div id="app">
+      <form class="layui-form" action="">
+        <div class="layui-form-item">
+          <!-- 名称 -->
+          <div class="layui-inline">
+            <label class="layui-form-label">书籍命称</label>
+            <div class="layui-input-inline">
+              <input type="text" name="name" autocomplete="off" class="layui-input" :value="book.name" disabled />
+            </div>
+          </div>
+
+         
+          <div class="layui-inline">
+            <label class="layui-form-label">作者</label>
+            <div class="layui-input-inline">
+              <input type="text" name="author" autocomplete="off" class="layui-input" :value="book.author"  disabled />
+            </div>
+          </div>
+
+          <div class="layui-inline">
+            <label class="layui-form-label">所属图书馆</label>
+            <div class="layui-input-block">
+              <select name="library" v-model="book.libraryId">
+                <option :value="item.id" v-for="item in library_list" v-html="item.name" ></option>
+              </select>
+            </div>
+          </div>
+
+          <div class="layui-inline">
+            <label class="layui-form-label">书籍类型</label>
+            <div class="layui-input-block">
+              <select name="sort" v-model="book.sortId">
+                <option :value="item.id" v-for="item in bookSort_list" v-html="item.name"></option>
+              </select>
+            </div>
+          </div>
+
+          <div class="layui-inline">
+            <label class="layui-form-label">书籍位置</label>
+            <div class="layui-input-inline">
+              <input type="text" name="position" autocomplete="off" class="layui-input" :value="book.position"  />
+            </div>
+          </div>
+
+          <div class="layui-inline">
+            <label class="layui-form-label">书籍状态</label>
+            <div class="layui-input-block">
+              <select name="status" lay-filter="status" v-model="book.status" >
+                <option value=0>已借阅</option>
+                <option value=1>未借阅</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 籍贯 -->
+          <div class="layui-inline">
+            <label class="layui-form-label">书籍简介</label>
+            <div class="layui-input-inline">
+              <input type="text" name="description" autocomplete="off" class="layui-input" :value="book.description"  />
+            </div>
+          </div>
+          <input type="text" id="eId" name="id" v-model="id" style="display: none" />
+        <div class="layui-form-item">
+          <div class="layui-input-block">
+            <button type="submit" class="layui-btn" lay-submit="" lay-filter="submit">
+              立即提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary">
+              重置
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <script src="../js/jquery.min.js"></script>
+    <script src="../lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="../js/xadmin.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script src="../js/vue.js"></script>
+    <script>
+      //发送请求,去后台查询当前的员工信息
+      layui.use(["form", "laydate"], function () {
+        let form = layui.form;
+        let laydate = layui.laydate;
+        //vue.js的使用--渲染数据
+        setTimeout(function () {
+          const app = new Vue({
+            el: "#app",
+            data: {
+              book:"",
+              bookSort_list:null,
+              library_list:null,
+              id: "",
+            },
+            created() {
+              this.id = $("#eId").val();
+             
+              axios
+                .get("http://localhost:8520/books/" + $("#eId").val())
+                .then((res) => {
+                  this.book=res.data.data.book;
+                  this.bookSort_list=res.data.data.bookSorts_list;
+                  this.library_list=res.data.data.library_list;
+                  console.log(this.book);
+                  
+                });
+            },
+            updated() {
+              layui.use("form", () => {
+                form.render();
+                // $("#eId").val(this.id)
+              });
+            },
+          });
+        }, 100);
+        //修改操作的时间,按钮的监听
+        form.on("submit(submit)", function (obj) {//obj是表单中的元素
+          console.log(obj.field);
+          axios
+            .put("http://localhost:8520/books", obj.field)
+            .then((res) => {
+              if (res.data.code == 200) {
+                layer.msg(
+                  "修改成功",
+                  {
+                    time: 2000,
+                    icon: 1,
+                  },
+                  function myrefresh(){
+                    window.parent.location.reload();
+                  }
+                );
+              }else{
+                layer.msg("操作异常",{
+                  icon:2,
+                  time:2000
+                })
+              }
+            });
+          return false;
+        });
+      });
+    </script>
+  </body>
+
+  </html>

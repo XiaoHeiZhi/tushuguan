@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>书籍管理页面</title>
+    <link rel="stylesheet" href="../css/font.css" />
+    <link rel="stylesheet" href="../css/xadmin.css" />
+    <link rel="stylesheet" href="../lib/layui/css/layui.css" />
+  </head>
+  <body>
+    <form class="layui-form layui-col-space5">
+      <div class="layui-input-inline layui-show-xs-block">
+        <input class="layui-input" placeholder="书名" name="name" id="name" />
+      </div>
+      <div class="layui-input-inline layui-show-xs-block">
+        <input
+          class="layui-input"
+          placeholder="作者"
+          name="author"
+          id="author"
+        />
+      </div>
+      <div class="layui-input-inline layui-show-xs-block">
+        <input
+          type="text"
+          name="library"
+          placeholder="图书馆"
+          class="layui-input"
+          id="library"
+        />
+      </div>
+      <div class="layui-input-inline layui-show-xs-block">
+        <button class="layui-btn" type="button" id="search">
+          <i class="layui-icon">&#xe615;</i>
+        </button>
+      </div>
+    </form>
+    <table class="layui-hide" id="employee" lay-filter="employeeTable"></table>
+    <script src="../js/jquery.min.js"></script>
+    <script src="../lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="../js/xadmin.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+     
+    <script>
+      layui.use(["table", "layer", "form", "laydate"], function () {
+        
+        let table = layui.table;
+        let layer = layui.layer;
+        let form = layui.form;
+        let laydate = layui.laydate;
+        //默认配置 axios携带cookie访问如果不写这一句的话请求不会带cookie但是如果将项目放在服务器中就会自动带上cookie
+        axios.defaults.withCredentials = true;
+         //解决layui的ajax请求携带cookie
+         $.ajaxSetup({
+          xhrFields: {
+            withCredentials: true,
+          },
+          crossDomain: true,
+        });
+        //条件查询
+        $("#search").on("click", () => {
+          table.reload("employee", {
+            url: "http://localhost:8520/books/conditions",
+            where: {
+              author: $("#author").val(),
+              name: $("#name").val(),
+              libraryId: $("#library").val(),
+            }, //设定异步数据接口的额外参数
+          });
+        });
+
+        // //提前加载部门的数据
+        // axios.get("http://localhost:9527/department").then((res) => {
+        //   // console.log(res.data.data);
+        //   // 在渲染下拉框之前,清空之前的所有数据
+        //   $("#dep").empty();
+        //   // 数据渲染 index是每次循环的索引  item 每一次循环的对象
+        //   $.each(res.data.data, function (index, item) {
+        //     // console.log(item.name);
+        //     $("#dep").append(
+        //       '<option value="' + item.name + '">' + item.name + "</option>"
+        //     );
+        //   });
+        //   form.render();
+        // });
+
+        // 条件查询的时间初始化
+        laydate.render({
+          elem: "#begindate",
+        });
+
+        // 初始化一个table列表
+        let emTbale = table.render({
+          elem: "#employee",
+          url: "http://localhost:8520/books", //数据接口
+          
+          title: "书籍档案表",
+          page: true,
+          toolbar: "default", //开启工具栏，此处显示默认图标，可以自定义模板，详见文档
+          cols: [
+            [
+              //表头
+              { type: "checkbox", fixed: "left" },
+              {
+                field: "id",
+                title: "ID",
+                sort: true, //排序
+                fixed: "left",
+                align: "center",
+              },
+              { field: "name", title: "书名", align: "center" },
+              {
+                field: "author",
+                title: "作者",
+                align: "center",
+              },
+              { field: "library", title: "图书馆", align: "center" },
+              {
+                field: "sort",
+                title: "类型",
+                align: "center",
+              },
+              {
+                field: "position",
+                title: "所在位置",
+                align: "center",
+                edit: "text",
+              },
+              { field: "description", title: "书籍描述", align: "center" },
+              {
+                field: "status",
+                title: "书籍状态",
+                align: "center",
+                templet: function (res) {
+                  //   console.log(res.id);
+                  if (res.status == 0) {
+                    return (
+                      '<input type="checkbox" name="status" value="' +
+                      res.id +
+                      '" lay-skin="switch" lay-text="已被借阅|未被借阅" lay-filter="status" checked/>'
+                    );
+                  } else {
+                    return (
+                      '<input type="checkbox" name="status" value="' +
+                      res.id +
+                      '" lay-skin="switch" lay-text="已被借阅|未被借阅" lay-filter="status"/>'
+                    );
+                  }
+                },
+              },,
+              
+            ],
+          ],
+        });
+        form.on("switch(status)", function (obj) {
+          let id = this.value;
+          let status = obj.elem.checked == true ?  "0" : "1";
+          axios
+            .patch("http://localhost:8520/books", {
+              id: id,
+              value: status,
+              field: "status",
+            })
+            .then((res) => {
+              if (res.data.code == 200) {
+                layer.msg("操作成功", {
+                  time: 3000,
+                  icon: 1,
+                });
+              } else {
+                layer.msg("操作失败", {
+                  time: 3000,
+                  icon: 2,
+                });
+              }
+            });
+        });
+        //初始化表格无法携带cookie
+        //监听员工邮箱,电话的单元格编辑操作
+        table.on("edit(employeeTable)", function (obj) {
+          
+          let value = obj.value, //得到修改后的值
+            data = obj.data, //当前行的数据(一个对象)
+            field = obj.field; //得到字段
+          axios
+            .patch("http://localhost:8520/books", {
+              id: data.id,
+              value: value,
+              field: field,
+            })
+            .then((res) => {
+              if (res.data.code == 200) {
+                layer.msg("操作成功", {
+                  time: 3000,
+                  icon: 1,
+                });
+              } else {
+                layer.msg("操作失败", {
+                  time: 3000,
+                  icon: 2,
+                });
+              }
+            });
+        });
+
+        //监听头工具栏事件
+        table.on("toolbar(employeeTable)", function (obj) {
+          let checkStatus = table.checkStatus(obj.config.id);
+          let data = checkStatus.data; //是一个数组,里面存放的是每一条选中的数据
+          switch (obj.event) {
+            case "add":
+              layer.msg("添加");
+                //弹出一个编辑框
+                layer.open({
+                  type: 2,
+                  area: ["95%", "100%"],
+                  title: ["添加一个成员"],
+                  content: "insert.html",
+                });
+              break;
+            case "update":
+              if (data.length === 0) {
+                layer.msg("请选择一行");
+              } else if (data.length > 1) {
+                layer.msg("只能同时编辑一个");
+              } else {
+                //通过id进行修改
+                let id = data[0].id;
+                console.log(id)
+                //弹出一个编辑框
+                layer.open({
+                  type: 2,
+                  area: ["95%", "100%"],
+                  title: ["编辑" + data[0].name + "的信息", "color:red;"],
+                  content: "updateemp.html",
+                  success: function (layero, index) {
+                    let body = layer.getChildFrame("body", index);
+                    // console.log(body.html()); //得到iframe页的body内容
+                    body.find("#eId").val(data[0].id); //再给子页面标签赋值
+                  },
+                });
+              }
+              break;
+            case "delete":
+              if (data.length === 0) {
+                layer.msg("请选择一行");
+              } else {
+                layer.confirm("确定删除?", function (index) {
+                  layer.close(index);
+                  //向服务端发送删除指令
+                  // 后台是通过id删除 ,有可能选中多条数据  [1,2,3,4,5]
+                  let ids = new Array();
+                  for (const i in data) {
+                    ids[i] = data[i].id;
+                  }
+                  axios
+                    .delete("http://localhost:8520/books", {
+                      //将数据放在body
+                      data: {
+                        ids: ids,
+                      },
+                    })
+                    .then((res) => {
+                      if (res.data.code == 200) {
+                        layer.msg(
+                          "操作成功",
+                          {
+                            time: 3000,
+                            icon: 1,
+                          },
+                          function (index) {
+                            emTbale.reload();
+                          }
+                        );
+                      } else {
+                        layer.msg("操作失败", {
+                          time: 3000,
+                          icon: 2,
+                        });
+                      }
+                    });
+                });
+              }
+              break;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

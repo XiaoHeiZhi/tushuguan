@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>管理员页面</title>
+    <link rel="stylesheet" href="../css/font.css" />
+    <link rel="stylesheet" href="../css/xadmin.css" />
+    <link rel="stylesheet" href="../lib/layui/css/layui.css" />
+  </head>
+  <body>
+    <table class="layui-hide" id="employee" lay-filter="employeeTable"></table>
+
+    <script src="../js/jquery.min.js"></script>
+    <script src="../lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="../js/xadmin.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script>
+      layui.use(["table", "layer", "form"], function () {
+        let table = layui.table;
+        let layer = layui.layer;
+        let form = layui.form;
+     
+
+        // 默认配置 axios自动携带cookie
+        axios.defaults.withCredentials = true;
+
+        //解决layui的ajax请求携带cookie
+        $.ajaxSetup({
+          xhrFields: {
+            withCredentials: true,
+          },
+          crossDomain: true,
+        });
+
+        // 初始化一个table列表
+        let emTbale = table.render({
+          elem: "#employee",
+          url: "http://localhost:8520/managers", //数据接口
+          title: "管理员信息表",
+          page: true,
+          toolbar: "default", //开启工具栏，此处显示默认图标，可以自定义模板，详见文档
+          cols: [
+            [
+              //表头
+              { type: "checkbox", fixed: "left" },
+              {
+                field: "id",
+                title: "ID",
+                sort: true, //排序
+                fixed: "left",
+                align: "center",
+              },
+              { field: "name", title: "姓名", align: "center" },
+           
+              { field: "account", title: "用户名", align: "center" },
+              {
+                field: "password",
+                title: "密码",
+                align: "center",
+              },
+              {
+                field: "email",
+                title: "邮箱",
+                align: "center",
+              },
+            ],
+          ],
+        });
+
+
+
+        //监听头工具栏事件
+        table.on("toolbar(employeeTable)", function (obj) {
+          let checkStatus = table.checkStatus(obj.config.id);
+          let data = checkStatus.data; //是一个数组,里面存放的是每一条选中的数据
+          switch (obj.event) {
+            case "add":
+              if(data.length>0){
+                layer.msg("添加不用选中某一行！");
+              }else{
+                layer.open({
+                  type: 2,
+                  area: ["95%", "100%"],
+                  title: ["添加管理员", "color:red;"],
+                  content: "addmanager.html",
+                  // success: function (layero, index) {
+                  //   let body = layer.getChildFrame("body", index);
+                  //   // console.log(body.html()); //得到iframe页的body内容
+                  //   body.find("#eId").val(data[0].id); //再给子页面标签赋值
+                  // },
+                  cancel:function(layero,index){
+                    emTbale.reload();
+                  }
+                });
+              }
+              break;
+            case "update":
+              if (data.length === 0) {
+                layer.msg("请选择一行");
+              } else if (data.length > 1) {
+                layer.msg("只能同时编辑一个");
+              } else {
+                //通过id进行修改
+                let id = data[0].id;
+                //弹出一个编辑框
+                layer.open({
+                  type: 2,
+                  area: ["95%", "100%"],
+                  title: ["编辑" + data[0].name + "的信息", "color:red;"],
+                  content: "updatemanager.html",
+                  success: function (layero, index) {
+                    let body = layer.getChildFrame("body", index);
+                    // console.log(body.html()); //得到iframe页的body内容
+                    body.find("#eId").val(data[0].id); //再给子页面标签赋值
+                  },
+                  cancel:function(layero,index){
+                    emTbale.reload();
+                  }
+                });
+              }
+              break;
+            case "delete":
+              if (data.length === 0) {
+                layer.msg("请选择一行");
+              } else {
+                layer.confirm("确定删除?", function (index) {
+                  layer.close(index);
+                  //向服务端发送删除指令
+                  // 后台是通过id删除 ,有可能选中多条数据  [1,2,3,4,5]
+                  let ids = new Array();
+                  for (const i in data) {
+                    ids[i] = data[i].id;
+                  }
+                  axios
+                    .delete("http://localhost:8520/managers", {
+                      //将数据放在body
+                      data: {
+                        ids: ids,
+                      },
+                    })
+                    .then((res) => {
+                      if (res.data.code == 200) {
+                        layer.msg(
+                          "操作成功",
+                          {
+                            time: 3000,
+                            icon: 1,
+                          },
+                          function (index) {
+                            emTbale.reload();
+                          }
+                        );
+                      } else {
+                        layer.msg("操作失败", {
+                          time: 3000,
+                          icon: 2,
+                        });
+                      }
+                    });
+                });
+              }
+              break;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
