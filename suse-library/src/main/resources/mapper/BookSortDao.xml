@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qf.suselibrary.dao.BookSortDao">
+
+    <resultMap type="com.qf.suselibrary.entity.BookSort" id="BookSortMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="queryAll" resultMap="BookSortMap">
+        select id,
+               name
+        from book_sort
+    </select>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="BookSortMap">
+        select id,
+               name,
+               description
+        from book_sort
+        where id = #{id}
+    </select>
+
+
+
+</mapper>
+

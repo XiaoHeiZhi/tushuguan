@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qf.suselibrary.dao.BorrowBooksDao">
+
+    <resultMap type="com.qf.suselibrary.entity.BorrowBooks" id="BorrowBooksMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="cardId" column="card_id" jdbcType="INTEGER"/>
+        <result property="bookId" column="book_id" jdbcType="INTEGER"/>
+        <result property="borrowDate" column="borrow_date" jdbcType="TIMESTAMP"/>
+        <result property="endDate" column="end_date" jdbcType="TIMESTAMP"/>
+        <result property="returnDate" column="return_date" jdbcType="TIMESTAMP"/>
+        <result property="illegal" column="illegal" jdbcType="VARCHAR"/>
+        <result property="managerId" column="manager_id" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--    条件查询-->
+    <select id="queryPageByConditions" resultType="com.qf.suselibrary.entity.BorrowBooks">
+        select id,
+        card_id as cardId,
+        book_id as bookId,
+        borrow_date as borrowDate,
+        end_date as endDate,
+        return_date as returnDate,
+        illegal,
+        manager_id as managerId
+        from borrow_books
+        <where>
+            <if test="borrowBooks.cardId!=null and borrowBooks.cardId!=''">
+                card_id=#{borrowBooks.cardId}
+            </if>
+            <if test="borrowBooks.bookId!=null and borrowBooks.bookId!=''">
+                and book_id=#{borrowBooks.bookId}
+            </if>
+            limit #{page},#{limit}
+        </where>
+    </select>
+
+    <select id="queryByConditions" resultType="com.qf.suselibrary.entity.BorrowBooks">
+        select id,
+        card_id,
+        book_id,
+        borrow_date,
+        end_date,
+        return_date,
+        illegal,
+        manager_id
+        from borrow_books
+        <where>
+            <if test="borrowBooks.cardId!=null and borrowBooks.cardId!=''">
+                card_id=#{borrowBooks.cardId}
+            </if>
+            <if test="borrowBooks.bookId!=null and borrowBooks.bookId!=''">
+                and book_id=#{borrowBooks.bookId}
+            </if>
+        </where>
+    </select>
+
+    <!--    分页查所有-->
+    <select id="queryAll" resultMap="BorrowBooksMap">
+        select id,
+               card_id,
+               book_id,
+               borrow_date,
+               end_date,
+               return_date,
+               illegal,
+               manager_id
+        from borrow_books
+                 limit #{page},#{limit}
+    </select>
+    <!--查询单个-->
+    <select id="queryById" resultMap="BorrowBooksMap">
+        select id,
+               card_id,
+               book_id,
+               borrow_date,
+               end_date,
+               return_date,
+               illegal,
+               manager_id
+        from borrow_books
+        where id = #{id}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="BorrowBooksMap">
+        select
+        id, card_id, book_id, borrow_date, end_date, return_date, illegal, manager_id
+        from borrow_books
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="cardId != null">
+                and card_id = #{cardId}
+            </if>
+            <if test="bookId != null">
+                and book_id = #{bookId}
+            </if>
+            <if test="borrowDate != null">
+                and borrow_date = #{borrowDate}
+            </if>
+            <if test="endDate != null">
+                and end_date = #{endDate}
+            </if>
+            <if test="returnDate != null">
+                and return_date = #{returnDate}
+            </if>
+            <if test="illegal != null and illegal != ''">
+                and illegal = #{illegal}
+            </if>
+            <if test="managerId != null and managerId != ''">
+                and manager_id = #{managerId}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(id)
+        from borrow_books
+
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into borrow_books(card_id, book_id, borrow_date, end_date, return_date, illegal, manager_id)
+        values (#{cardId}, #{bookId}, #{borrowDate}, #{endDate}, #{returnDate}, #{illegal}, #{managerId})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into borrow_books(card_id, book_id, borrow_date, end_date, return_date, illegal, manager_id)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.cardId}, #{entity.bookId}, #{entity.borrowDate}, #{entity.endDate}, #{entity.returnDate},
+            #{entity.illegal}, #{entity.managerId})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into borrow_books(card_id, book_id, borrow_date, end_date, return_date, illegal, manager_id)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.cardId}, #{entity.bookId}, #{entity.borrowDate}, #{entity.endDate}, #{entity.returnDate},
+            #{entity.illegal}, #{entity.managerId})
+        </foreach>
+        on duplicate key update
+        card_id = values(card_id),
+        book_id = values(book_id),
+        borrow_date = values(borrow_date),
+        end_date = values(end_date),
+        return_date = values(return_date),
+        illegal = values(illegal),
+        manager_id = values(manager_id)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update borrow_books
+        <set>
+            <if test="cardId != null">
+                card_id = #{cardId},
+            </if>
+            <if test="bookId != null">
+                book_id = #{bookId},
+            </if>
+            <if test="borrowDate != null">
+                borrow_date = #{borrowDate},
+            </if>
+            <if test="endDate != null">
+                end_date = #{endDate},
+            </if>
+            <if test="returnDate != null">
+                return_date = #{returnDate},
+            </if>
+            <if test="illegal != null">
+                illegal = #{illegal},
+            </if>
+            <if test="managerId != null">
+                manager_id = #{managerId},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from borrow_books
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
+

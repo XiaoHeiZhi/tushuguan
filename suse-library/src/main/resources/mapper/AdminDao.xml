@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qf.suselibrary.dao.AdminDao">
+
+    <resultMap type="com.qf.suselibrary.entity.Admin" id="AdminMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="enabled" column="enabled" jdbcType="INTEGER"/>
+        <result property="userface" column="userface" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <!--remark查询-->
+    <select id="queryByRemark" resultMap="AdminMap">
+        select id,
+               name,
+               username,
+               userface,
+               remark
+        from admin
+        where remark = #{remark} and enabled=1
+    </select>
+
+    <!--查询用户名-->
+    <select id="queryByUserName" resultMap="AdminMap">
+        select id,
+               name,
+               enabled,
+               username,
+               password,
+               userface,
+               remark
+        from admin
+        where username = #{username} and enabled=1
+    </select>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="AdminMap">
+        select id,
+               name,
+               enabled,
+               username,
+               password,
+               userface,
+               remark
+        from admin
+        where id = #{id}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="AdminMap">
+        select
+        username, password
+        from admin
+        <where>
+            <if test="username != null and username != ''">
+                and username = #{username}
+            </if>
+            <if test="password != null and password != ''">
+                and password = #{password}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from admin
+        <where>
+            <if test="username != null and username != ''">
+                and username = #{username}
+            </if>
+            <if test="password != null and password != ''">
+                and password = #{password}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="username" useGeneratedKeys="true">
+        insert into admin(password)
+        values (#{password})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="username" useGeneratedKeys="true">
+        insert into admin(password)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.password})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="username" useGeneratedKeys="true">
+        insert into admin(password)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.password})
+        </foreach>
+        on duplicate key update
+        password = values(password)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update admin
+        <set>
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark = #{remark},
+            </if>
+        </set>
+        where username = #{username}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from admin
+        where username = #{username}
+    </delete>
+
+</mapper>
+

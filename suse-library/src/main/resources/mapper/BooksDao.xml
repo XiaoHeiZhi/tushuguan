@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qf.suselibrary.dao.BooksDao">
+
+    <resultMap type="com.qf.suselibrary.entity.Books" id="BooksMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="author" column="author" jdbcType="VARCHAR"/>
+        <result property="libraryId" column="library_id" jdbcType="INTEGER"/>
+        <result property="sortId" column="sort_id" jdbcType="INTEGER"/>
+        <result property="position" column="position" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <!--查询借书数量-->
+    <select id="queryBorrow" resultType="com.qf.suselibrary.dto.BookBorrowDto">
+        select COUNT(borrow_books.book_id) AS value,name
+        FROM borrow_books,books
+        WHERE books.id=borrow_books.book_id
+        GROUP BY books.id
+    </select>
+
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="BooksMap">
+        select id,
+               name,
+               author,
+               library_id,
+               sort_id,
+               position,
+               status,
+               description
+        from books
+        where id = #{id}
+    </select>
+
+    <!--格局限制条件查询所有数据-->
+    <select id="queryAll" resultType="com.qf.suselibrary.dto.Booksdto">
+        select books.id,
+               books.name,
+               author,
+               library.name as  library,
+               book_sort.name as sort,
+               position,
+               status,
+               books.description
+        from books,library,book_sort
+        where books.library_id=library.id and books.sort_id =book_sort.id limit #{page},#{limit}
+    </select>
+
+    <!--分页查询-->
+    <select id="queryPageByconditions" resultType="com.qf.suselibrary.dto.Booksdto">
+        select books.id,
+        books.name,
+        author,
+        library.name as  library,
+        book_sort.name as sort,
+        position,
+        status,
+        books.description
+        from books,library,book_sort
+        <where>
+            <if test="books.libraryId != null ">
+                library.id=#{books. libraryId}
+            </if>
+            <if test="books.author!= null and books.author !=''">
+                and author = #{books.author}
+            </if>
+            <if test="books.name != null and books.name != ''">
+                and books.name = #{books.name}
+            </if>
+            <if test="1==1">
+                and books.library_id=library.id and books.sort_id =book_sort.id
+            </if>
+        </where>
+        limit #{page},#{limit}
+    </select>
+
+    <!--条件查询-->
+    <select id="queryByconditions" resultType="com.qf.suselibrary.dto.Booksdto">
+        select books.id,
+        books.name,
+        author,
+        library.name as  library,
+        book_sort.name as sort,
+        position,
+        status,
+        books.description
+        from books,library,book_sort
+        <where>
+
+            <if test="books.libraryId != null ">
+                library.id=#{books. libraryId}
+            </if>
+            <if test="books.author!= null and books.author !=''">
+                and author = #{books.author}
+            </if>
+            <if test="books.name != null and books.name != ''">
+                and books.name = #{books.name}
+            </if>
+            <if test="1==1">
+                and books.library_id=library.id and books.sort_id =book_sort.id
+            </if>
+        </where>
+    </select>
+
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="BooksMap">
+        select
+        id, name, author, library_id, sort_id, position, status, description
+        from books
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="author != null and author != ''">
+                and author = #{author}
+            </if>
+            <if test="libraryId != null">
+                and library_id = #{libraryId}
+            </if>
+            <if test="sortId != null">
+                and sort_id = #{sortId}
+            </if>
+            <if test="position != null and position != ''">
+                and position = #{position}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="description != null and description != ''">
+                and description = #{description}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from books
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into books(name, author, library_id, sort_id, position, status, description)
+        values (#{name}, #{author}, #{libraryId}, #{sortId}, #{position}, #{status}, #{description})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into books(name, author, library_id, sort_id, position, status, description)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.name}, #{entity.author}, #{entity.libraryId}, #{entity.sortId}, #{entity.position},
+            #{entity.status}, #{entity.description})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into books(name, author, library_id, sort_id, position, status, description)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.name}, #{entity.author}, #{entity.libraryId}, #{entity.sortId}, #{entity.position},
+            #{entity.status}, #{entity.description})
+        </foreach>
+        on duplicate key update
+        name = values(name),
+        author = values(author),
+        library_id = values(library_id),
+        sort_id = values(sort_id),
+        position = values(position),
+        status = values(status),
+        description = values(description)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update books
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="author != null and author != ''">
+                author = #{author},
+            </if>
+            <if test="libraryId != null">
+                library_id = #{libraryId},
+            </if>
+            <if test="sortId != null">
+                sort_id = #{sortId},
+            </if>
+            <if test="position != null and position != ''">
+                position = #{position},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from books
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+        -- 动态sql循环ids
+    </delete>
+
+</mapper>
+

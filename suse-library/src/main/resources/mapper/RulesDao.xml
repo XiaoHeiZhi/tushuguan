@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qf.suselibrary.dao.RulesDao">
+
+    <resultMap type="com.qf.suselibrary.entity.Rules" id="RulesMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="borrowNum" column="borrow_num" jdbcType="INTEGER"/>
+        <result property="limitDay" column="limit_day" jdbcType="INTEGER"/>
+        <result property="borrowLibrary" column="borrow_library" jdbcType="VARCHAR"/>
+        <result property="overtimeFee" column="overtime_fee" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <!--查询单个-->
+    <select id="queryAll" resultMap="RulesMap">
+        select id
+        from rules
+    </select>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="RulesMap">
+        select id,
+               borrow_num,
+               limit_day,
+               borrow_library,
+               overtime_fee
+        from rules
+        where id = #{id}
+    </select>
+    <!--分页查找-->
+    <select id="queryAllInt" resultMap="RulesMap">
+        select id,
+               borrow_num,
+               limit_day,
+               borrow_library,
+               overtime_fee
+        from rules
+                 limit #{page},#{limit}
+    </select>
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="RulesMap">
+        select
+        id, borrow_num, limit_day, borrow_library, overtime_fee
+        from rules
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="borrowNum != null">
+                and borrow_num = #{borrowNum}
+            </if>
+            <if test="limitDay != null">
+                and limit_day = #{limitDay}
+            </if>
+            <if test="borrowLibrary != null and borrowLibrary != ''">
+                and borrow_library = #{borrowLibrary}
+            </if>
+            <if test="overtimeFee != null and overtimeFee != ''">
+                and overtime_fee = #{overtimeFee}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="countInt" resultType="java.lang.Long">
+        select count(1)
+        from rules
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="borrowNum != null">
+                and borrow_num = #{borrowNum}
+            </if>
+            <if test="limitDay != null">
+                and limit_day = #{limitDay}
+            </if>
+            <if test="borrowLibrary != null and borrowLibrary != ''">
+                and borrow_library = #{borrowLibrary}
+            </if>
+            <if test="overtimeFee != null and overtimeFee != ''">
+                and overtime_fee = #{overtimeFee}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insertInt" keyProperty="id" useGeneratedKeys="true">
+        insert into rules(borrow_num, limit_day, borrow_library, overtime_fee)
+        values (#{borrowNum}, #{limitDay}, #{borrowLibrary}, #{overtimeFee})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into rules(borrow_num, limit_day, borrow_library, overtime_fee)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.borrowNum}, #{entity.limitDay}, #{entity.borrowLibrary}, #{entity.overtimeFee})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into rules(borrow_num, limit_day, borrow_library, overtime_fee)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.borrowNum}, #{entity.limitDay}, #{entity.borrowLibrary}, #{entity.overtimeFee})
+        </foreach>
+        on duplicate key update
+        borrow_num = values(borrow_num),
+        limit_day = values(limit_day),
+        borrow_library = values(borrow_library),
+        overtime_fee = values(overtime_fee)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="updateInt">
+        update rules
+        <set>
+            <if test="borrowNum !=null">
+                borrow_num = #{borrowNum},
+            </if>
+            <if test="limitDay != null">
+                limit_day = #{limitDay},
+            </if>
+            <if test="borrowLibrary !=null">
+                borrow_library = #{borrowLibrary},
+            </if>
+            <if test="overtimeFee !=null">
+                overtime_fee = #{overtimeFee},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteByInt">
+        delete
+        from rules
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
+
